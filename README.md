@@ -2,7 +2,7 @@
 
 ### Introduction
 This repository is a PyTorch implementation of a semantic segmentation pipeline applied to solar panel detection. 
-- Preliminary classification: a classifier distinguish "positive" images (containing solar panels) from "negative" images
+- Preliminary classification: a classifier distinguishes "positive" images (containing solar panels) from "negative" images
   <img src="./util/output_github.png" width="900"/>
 - Semantic segmentation: a segmentation model generates segmentation masks of "positive" samples
     
