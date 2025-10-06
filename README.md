@@ -20,5 +20,21 @@ We use torchvision EfficientNet-v2S for classification, SegFormer with mit-b2 en
      sbatch tools/train_classifier.sh
      ```
      
-5. Train segmentation model
-6. Test
+5. Train segmentation model:
+   - ```shell
+     python tools/train_segformer.py
+     ```
+   - if you are using SLURM:
+     ```shell
+     sbatch tools/train_segformer.sh
+     ```
+   
+7. Test:
+   1. Classify your test set images into "positive" or "negative":
+      ```shell
+     python tools/classify.py
+     ```
+   3. Segment the images predicted to contain solar panels:
+     ```shell
+     python tools/train_classifier.py
+     ```
