@@ -9,7 +9,7 @@ We use torchvision EfficientNet-v2S for classification, SegFormer with mit-b2 en
 ### Usage
 1. Clone repository
    ```shell
-   git clone
+   git clone https://github.com/cozzalberto/segment_pvs.git
    ```
 3. Train classifier
 4. Train segmentation model
