@@ -1,6 +1,6 @@
 dataset/
+!dataset/*.py
 logs/
 models/
-dataset/*.py
 *.err
 *.out
