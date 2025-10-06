@@ -11,7 +11,7 @@ We use torchvision EfficientNet-v2S for classification, SegFormer with mit-b2 en
    ```shell
    git clone https://github.com/cozzalberto/segment_pvs.git
    ```
-3. Train classifier with:
+2. Train classifier with:
    - ```shell
      python tools/train_classifier.py
      ```
@@ -21,7 +21,7 @@ We use torchvision EfficientNet-v2S for classification, SegFormer with mit-b2 en
      ```
 We used SLURM to work with these models. Consequently, you may need to do minor changes to our code to be able to run it directly with `python`. 
 
-5. Train segmentation model:
+3. Train segmentation model:
    - ```shell
      python tools/train_segformer.py
      ```
@@ -30,7 +30,7 @@ We used SLURM to work with these models. Consequently, you may need to do minor 
      sbatch tools/train_segformer.sh
      ```
    
-7. Test:
+4. Test:
    1. Classify your test set images into "positive" or "negative":
      ```shell
      sbatch tools/classify.sh
