@@ -14,32 +14,41 @@ We use torchvision EfficientNet-v2S for classification, SegFormer with MiT-b2 en
    git clone https://github.com/cozzalberto/segment_pvs.git
    ```
 2. Train classifier with:
+   
    - ```shell
      python tools/train_classifier.py
      ```
+   
    - if you are using SLURM:
      ```shell
      sbatch tools/train_classifier.sh
      ```
+     
 We used SLURM to work with these models. Consequently, you may need to do minor changes to our code to be able to run it directly with `python`. 
 
 3. Train segmentation model:
+   
    - ```shell
      python tools/train_segformer.py
      ```
+   
    - if you are using SLURM:
      ```shell
      sbatch tools/train_segformer.sh
      ```
    <img src="./util/output_githubSeg.png" width="900"/>
 
-4. Test:
+5. Test:
    1. Classify your test set images into "positive" or "negative":
+      
      ```shell
      sbatch tools/classify.sh
      ```
+   
    2. Segment the images predicted to contain solar panels:
+      
      ```shell
      sbatch tools/segment.sh
      ```
+   
    If you have access to a labeled test set we provide also `test.py` and `test_segment.py` that compute accuracy metrics of classifier and segmentation model, respectively.
