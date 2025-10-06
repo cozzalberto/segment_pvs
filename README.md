@@ -11,6 +11,14 @@ We use torchvision EfficientNet-v2S for classification, SegFormer with mit-b2 en
    ```shell
    git clone https://github.com/cozzalberto/segment_pvs.git
    ```
-3. Train classifier
-4. Train segmentation model
-5. Test
+3. Train classifier with:
+   - ```shell
+     python tools/train_classifier.py
+     ```
+   - if you are using SLURM:
+     ```shell
+     sbatch tools/train_classifier.sh
+     ```
+     
+5. Train segmentation model
+6. Test
