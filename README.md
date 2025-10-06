@@ -7,7 +7,6 @@ This repository is a PyTorch implementation of a semantic segmentation pipeline 
 - Semantic segmentation: a segmentation model generates segmentation masks of "positive" samples
     
 We use torchvision EfficientNet-v2S for classification, SegFormer with mit-b2 encoder for segmentation. We used these codes to fine-tune and evaluate these models on solar panel datasets.
-<img src="./util/output_githubSeg.png" width="900"/>
 
 ### Usage
 1. Clone repository
@@ -43,3 +42,4 @@ We used SLURM to work with these models. Consequently, you may need to do minor 
      sbatch tools/segment.sh
      ```
    If you have access to a labeled test set we provide also `test.py` and `test_segment.py` that compute accuracy metrics of classifier and segmentation model, respectively.
+<img src="./util/output_githubSeg.png" width="900"/>
