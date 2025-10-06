@@ -57,9 +57,12 @@ from transformers import Trainer, SegformerForSemanticSegmentation, TrainingArgu
 id2label = {0: 'background', 1: 'solar_panel'}
 label2id = {'background': 0, 'solar_panel': 1}
 
-processor = SegformerImageProcessor.from_pretrained("models/segformer", local_files_only=True, size = {"height":320,"width":320})
+processor = SegformerImageProcessor.from_pretrained("models/segformer", local_files_only=True, size = {"height":320,"width":320})   #modify models/segformer with your SegFormer Mit-B2 path model path
+                                                                                                                        #or with "nvidia/mit-b2" setting local_file_only = False if network access is available
 
-model = SegformerForSemanticSegmentation.from_pretrained(
+model = SegformerForSemanticSegmentation.from_pretrained(     #modify models/segformer with your SegFormer Mit-B2 path model path
+                                                              #or with "nvidia/mit-b2" setting local_file_only = False if network access is available
+                      
     "models/segformer",
     local_files_only = True,
     id2label=id2label,
