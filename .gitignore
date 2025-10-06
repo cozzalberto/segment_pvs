@@ -2,6 +2,7 @@ dataset/
 !dataset/*.py
 dataset/create_vale.py
 logs/
-models/
+models/*
 *.err
 *.out
+*.sh
