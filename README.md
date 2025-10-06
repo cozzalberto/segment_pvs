@@ -34,7 +34,8 @@ We use torchvision EfficientNet-v2S for classification, SegFormer with mit-b2 en
      ```shell
      python tools/classify.py
      ```
-   3. Segment the images predicted to contain solar panels:
+   2. Segment the images predicted to contain solar panels:
      ```shell
-     python tools/train_classifier.py
+     python tools/segment.py
      ```
+   If you have access to a labeled test set we provide also test.py and test_segment.py that compute accuracy metrics of classifier and segmentation model, respectively.
