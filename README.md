@@ -5,6 +5,7 @@ This repository is a PyTorch implementation of a semantic segmentation pipeline 
 - Preliminary classification: a classifier distinguish "positive" images (containing solar panels) from "negative" images
   <img src="./util/output_github.png" width="900"/>
 - Semantic segmentation: a segmentation model generates segmentation masks of "positive" samples
+  <img src="./util/output_githubSeg.png" width="900"/>
   
 We use torchvision EfficientNet-v2S for classification, SegFormer with mit-b2 encoder for segmentation. We used these codes to fine-tune and evaluate these models on solar panel datasets.
 
