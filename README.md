@@ -31,7 +31,7 @@ We use torchvision EfficientNet-v2S for classification, SegFormer with mit-b2 en
    
 7. Test:
    1. Classify your test set images into "positive" or "negative":
-      ```shell
+     ```shell
      python tools/classify.py
      ```
    3. Segment the images predicted to contain solar panels:
