@@ -1,1 +1,1 @@
-**Solar Panel Segmentation employing Deep Learning Techniques**
+#Solar Panel Segmentation employing Deep Learning Techniques
