@@ -66,7 +66,7 @@ main/
               ├── positive
               ├── negative
               └── mask
-
+```
 Test sets doesn't need to be supervised. You can test your models on them with `classify.py` and `segment.py` (while `test.py` and `test_segment.py` require supervised sets)
 
 
