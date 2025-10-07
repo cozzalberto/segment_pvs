@@ -52,3 +52,22 @@ We used SLURM to work with these models. Consequently, you may need to do minor 
      ```
    
    If you have access to a labeled test set we provide also `test.py` and `test_segment.py` that compute accuracy metrics of classifier and segmentation model, respectively.
+
+### Dataset structure required
+Datasets need to follow the directory structure illustrated below:
+```text
+main/
+├── dataset/
+|     ├──training_set/
+|              ├── positive
+|              ├── negative
+|              └── mask
+│     ├── validation_set/
+|              ├── positive
+|              ├── negative
+|              └── mask
+
+Test sets doesn't need to be supervised. You can test your models on them with `classify.py` and `segment.py` (while `test.py` and `test_segment.py` require supervised sets)
+
+
+
