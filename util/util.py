@@ -8,7 +8,11 @@ from sklearn.metrics import precision_score, recall_score, accuracy_score, jacca
 import torch.nn as nn
 import shutil
 import os
-
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix, classification_report
+from itertools import chain, product
+import argparse
+from . import config
 
 class EarlyStopper():
 
@@ -80,8 +84,8 @@ def compute_scores(model, dataloader, device):
         # Compute precision and recall
         val_loss= total_loss/total_samples
         accuracy = accuracy_score(all_labels, all_preds)
-        precision = precision_score(all_labels, all_preds, average='macro')
-        recall = recall_score(all_labels, all_preds, average='macro')
+        precision = precision_score(all_labels, all_preds, pos_label = 0,average='binary')
+        recall = recall_score(all_labels, all_preds, pos_label = 0, average='binary')
     return accuracy, precision, recall, val_loss
 
 def compute_metrics(eval_pred):
@@ -166,7 +170,108 @@ def compute_scores_seg(model, dataloader, device):
         # Compute precision and recall
         val_loss= total_loss/total_samples
         accuracy = accuracy_score(all_labels, all_preds)
-        precision = precision_score(all_labels, all_preds, average='macro')
-        recall = recall_score(all_labels, all_preds, average='macro')
+        precision = precision_score(all_labels, all_preds, pos_label=0, average='binary')
+        recall = recall_score(all_labels, all_preds, pos_label=0, average='binary')
     return accuracy, precision, recall, val_loss
 
+
+def output_label(label):  # Define a function to map numeric labels to class names
+    output_mapping = {  # Dictionary mapping numeric labels to class names
+        0: "solar",
+        1: "no solar",
+         }
+    input = (label.item() if type(label) == torch.Tensor else label)  # Convert tensor to scalar if needed
+    return output_mapping[input]  # Return the corresponding class name
+
+### `create_confusion_matrix` Function
+
+def create_confusion_matrix(model, loader, device, file_path, fig_path, seg = False):  # Define a function to create a confusion matrix
+    class_correct = [0. for _ in range(2)]  # List to store correctly predicted counts for each class
+    total_correct = [0. for _ in range(2)]  # List to store total counts for each class
+
+    predictions_list = []  # List to store all predictions
+    labels_list = []  # List to store all true labels
+
+    with torch.no_grad():  # Disable gradient calculation for efficiency
+        for data, target in loader:  # Iterate over batches of data and targets
+            data, target = data.to(device), target.to(device)  # Move data and target to the specified device
+            if seg:
+                outputs =model(pixel_values = data)
+                outputs = outputs.logits
+            else:
+                outputs = model(data)  # Get model predictions
+            predicted = torch.max(outputs, 1)[1]  # Get the index of the max probability
+            c = (predicted == target ) # Check if predictions are correct
+            labels_list.append(target)  # Append true labels to the list
+            predictions_list.append(predicted)  # Append predictions to the list
+
+            for i in range(len(target)):  # Iterate over each label in the batch
+                label = target[i]  # Get the true label
+                class_correct[label] += c[i].item()  # Increment correct count for the label if prediction is correct
+                total_correct[label] += 1  # Increment total count for the label
+
+    for i in range(2):  # Iterate over all classes
+        with open(file_path, 'a') as f:
+            f.write("Accuracy of {}: {:.2f}%".format(output_label(i), class_correct[i] * 100 / total_correct[i]))  # Print accuracy for each class
+
+    predictions_l = [predictions_list[i].tolist() for i in range(len(predictions_list))]  # Flatten predictions list
+    labels_l = [labels_list[i].tolist() for i in range(len(labels_list))]  # Flatten labels list
+    predictions_l = list(chain.from_iterable(predictions_l))  # Convert list of lists to a single list
+    labels_l = list(chain.from_iterable(labels_l))  # Convert list of lists to a single list
+    with open(file_path,'a') as f:
+        f.write("Classification report for EfficientNet :\n%s\n" % (classification_report(labels_l, predictions_l)))  # Print classification report
+
+    cm = confusion_matrix(labels_l, predictions_l)  # Compute confusion matrix
+
+    classes = ['solar', 'no_solar']  # Class names
+    plt.figure(figsize=(8, 8))  # Create a new figure
+    plt.imshow(cm, cmap=plt.cm.Reds)  # Display the confusion matrix
+    plt.title(' Confusion Matrix ')  # Title for the plot
+    plt.colorbar()  # Add a color bar
+    plt.xticks(np.arange(2), classes, rotation=90)  # Set x-axis ticks and labels
+    plt.yticks(np.arange(2), classes)  # Set y-axis ticks and labels
+
+    for i, j in product(range(cm.shape[0]), range(cm.shape[1])):  # Iterate over confusion matrix elements
+        plt.text(j, i, "{:0.2f}".format(cm[i, j]), horizontalalignment="center", color="white" if cm[i, j] > 500 else "black")  # Annotate each cell
+    
+    plt.tight_layout()  # Adjust layout so labels fit nicely
+    plt.savefig(fig_path, dpi=300, bbox_inches="tight")  # Save to file
+    plt.close()
+    return
+
+
+
+def get_parser():
+    parser = argparse.ArgumentParser(description='PyTorch Classification')
+    parser.add_argument('--config', type=str, default='configs/danish_with_bbr_and_google/danish_with_bbr_and_google_efficientnet_v2s.yaml', help='config file')
+    parser.add_argument('opts', help='see configs/danish_with_bbr_and_google/danish_with_bbr_and_google_efficientnet_v2s.yaml', default=None, nargs=argparse.REMAINDER)
+    args = parser.parse_args()
+    assert args.config is not None
+    cfg = config.load_cfg_from_cfg_file(args.config)
+    if args.opts is not None:
+        cfg = config.merge_cfg_from_list(cfg, args.opts)
+    return cfg
+
+def count_activation(root, cls=nn.SiLU):
+    return sum(1 for m in root.modules() if isinstance(m, cls))
+
+def replace_activation(root, old_cls=nn.SiLU, new_cls=nn.ReLU):
+    for name, child in list(root._modules.items()):
+        if isinstance(child, old_cls):
+            root._modules[name] = new_cls()
+        else:
+            # recurse into submodules
+            replace_activation(child, old_cls, new_cls)
+
+
+def get_warmup_then_steplr(optimizer, num_warmup_steps, step_size, gamma=0.1):
+    def lr_lambda(current_step):
+        if current_step < num_warmup_steps:
+            # Warmup: scala linearmente da 0 a 1
+            return float(current_step) / float(max(1, num_warmup_steps))
+        else:
+            # Dopo warmup: applica step decay
+            steps_after_warmup = current_step - num_warmup_steps
+            return gamma ** (steps_after_warmup // step_size)
+    
+    return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)

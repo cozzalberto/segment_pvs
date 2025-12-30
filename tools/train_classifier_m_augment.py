@@ -15,7 +15,8 @@ import torch
 from torch.optim.lr_scheduler import StepLR, OneCycleLR, CosineAnnealingLR, ReduceLROnPlateau
 from torch.utils.data.distributed import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
+from sklearn.model_selection import train_test_split
 import torch.distributed as dist
 import os
 from PIL import Image
@@ -28,12 +29,15 @@ from dataset.dataset import CustomDataset
 import albumentations as A
 from albumentations.pytorch import ToTensorV2 # If using PyTorch
 import cv2
+from torch.utils.data import random_split
+
+
 
 current_time = datetime.datetime.now()
 
 formatted_time = current_time.strftime("%Y%m%d%H%M%S")
 
-file_path = f'logs/log_{formatted_time}.txt'
+file_path = f'logs/logM_{formatted_time}.txt'
 
 
 def setup():
@@ -52,14 +56,14 @@ def cleanup():
 
 # Define transformations (you can use your existing transformations)
 transform = A.Compose([
-    A.Resize(height=300, width=300, interpolation=1, always_apply=True),
+    A.Resize(height=384, width=384, interpolation=1, p=1.0),
     A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225],
                    max_pixel_value=255.0, normalization="standard", p=1.0),
     ToTensorV2(p=1.0), 
 ])
 
 training_transform = A.Compose([
-    A.Resize(height=300, width=300, interpolation=1, p=1),
+    A.Resize(height=384, width=384, interpolation=1, p=1),
     A.HorizontalFlip(p=0.5),                  # Step 2: Basic geometric
     A.OneOf([
         A.ToGray(p=1.0),
@@ -69,7 +73,7 @@ training_transform = A.Compose([
                  angle_range=[0.1,0.5],
                  num_flare_circles_range=[2,8],
                  src_radius=100, src_color=(255, 255, 255),
-                 p=0.4),
+                 p=0.3),
     A.SquareSymmetry(p=0.5),
     A.PlanckianJitter(p=0.3),
     A.RandomShadow(p=0.15),
@@ -80,38 +84,40 @@ training_transform = A.Compose([
 ])
 
 batch_size = 8
-num_epochs_phase1 = 20
-num_epochs_phase2 = 0 
-learning_rate1 = 1e-5
-fine_tune_lr = 1e-6
+num_epochs_phase1 = 0
+num_epochs_phase2 = 40 
+learning_rate1 = 1e-7
+fine_tune_lr = 1e-7
 learning_rate_2 = fine_tune_lr
-learning_diff = 3e-4
-wd1 = 1e-3
+learning_diff = 5e-5
+wd1 = 3e-3
 wd2 = 5e-4
-num_steplr = 10
+num_steplr = 20 
 scheduler1 ='steplr'   #SCHEDULER1 È QUELLO DEL BACKBONE, SCHEDULER_DIFF È QUELLO DEL CLASSIFIER. STESSO CRITERIO PER I LEARNING RATE. ANCHE SE NUM_UNFROZEN1 È 0 È COSÌ!!!!
 scheduler_diff = 'steplr'
-gamma_onecycle = 10
+gamma_onecycle = 1e3
 scheduler2 = 'onecycle'
-num_unfrozen1 = 5
-num_unfrozen2 = 0 
+num_unfrozen1 = 0
+num_unfrozen2 = 9 
 
-train_path = 'dataset/danish_dataset2/danish_with_bbr_and_google/gentofte_trainval/train'
-trainset_filtered = CustomDataset(root_dir='dataset/danish_dataset2/danish_with_bbr_and_google/gentofte_trainval/train', classes=['positive', 'negative'], transform=training_transform)
-
+#dataset_filtered = CustomDataset(root_dir='dataset/big_dataset/train', classes=['positive', 'negative'], transform=None)
+#indices = np.arange(len(dataset_filtered))
+#my_labels = [dataset_filtered.labels[i] for i in indices]  
+#train_idx, val_idx = train_test_split(indices, test_size = 0.15, random_state = 42, stratify = my_labels)
+#trainset_filtered = Subset(CustomDataset(root_dir='dataset/big_dataset/train', classes=['positive', 'negative'], transform=training_transform), train_idx)
+#valset = Subset(CustomDataset(root_dir='dataset/big_dataset/train', classes=['positive', 'negative'], transform = transform), val_idx)
 # You can then create a DataLoader from this dataset
+train_path = '/leonardo_work/PHD_cozzani/seg_solarbackup/dataset/danish_bbr_google_noherlev/gentofte_trainval/train/'
+trainset_filtered = CustomDataset(root_dir='/leonardo_work/PHD_cozzani/seg_solarbackup/dataset/danish_bbr_google_noherlev/gentofte_trainval/train', classes=['positive', 'negative'], transform=training_transform)
+valset = CustomDataset(root_dir='/leonardo_work/PHD_cozzani/seg_solarbackup/dataset/danish_bbr_google_noherlev/gentofte_trainval/val',classes=['positive', 'negative'], transform = transform)
 #trainloader = torch.utils.data.DataLoader(trainset_filtered, batch_size=batch_size, shuffle=True, num_workers=4)
-
-valset = CustomDataset(root_dir='dataset/danish_dataset2/danish_with_bbr_and_google/gentofte_trainval/val', classes=['positive', 'negative'], transform=transform)
-valloader = torch.utils.data.DataLoader(valset, batch_size=batch_size, shuffle=False, num_workers=4)
-        
-
+valloader = torch.utils.data.DataLoader(valset, batch_size=batch_size, shuffle=False, num_workers=4)      
 def train():
     rank, world_size, local_rank= setup()
     print(world_size)
     torch.cuda.set_device(local_rank)
-    model = models.efficientnet_v2_s()
-    model.load_state_dict(torch.load("models/efficientnet_weights.pth", map_location=f"cuda:{local_rank}"))
+    model = models.efficientnet_v2_m()
+    model.load_state_dict(torch.load("models/efficientnet_v2_m-dc08266a.pth", map_location=f"cuda:{local_rank}"))
     model.avgpool = nn.AdaptiveAvgPool2d((2,2))
     num_ftrs = model.classifier[1].in_features
     model.classifier = nn.Sequential(
@@ -142,9 +148,9 @@ def train():
         classes=np.unique(trainset_filtered.labels),
         y = trainset_filtered.labels)
     class_weights=torch.tensor(class_weights,dtype=torch.float).to(local_rank)
-    print(class_weights)
+
     criterion = nn.CrossEntropyLoss(weight=class_weights)
-    stopper=EarlyStopper(patience=7)
+    stopper=EarlyStopper(patience=15)
     #scheduler = OneCycleLR(optimizer, 0.001, total_steps=None, epochs=num_epochs, steps_per_epoch=len(dataloader))
     #scheduler = StepLR(optimizer,step_size=10,gamma=0.1)
     logger = MetricLogger(local_rank, world_size)
@@ -196,7 +202,8 @@ def train():
     if rank == 0:
         init_write(file_path, batch_size, num_epochs_phase1, num_epochs_phase2, learning_rate_2, wd1, wd2, scheduler1, scheduler2, scheduler_diff,  num_unfrozen1, num_unfrozen2,num_steplr, gamma_onecycle, learning_diff, learning_rate1 = learning_rate1 )
         print("--- Fase 1: Addestramento del Classificatore ---")
-
+        with open(file_path,'a') as f:
+            f.write(train_path)
     for epoch in range(num_epochs_phase1):
         sampler.set_epoch(epoch)
         ddp_model.train() # Imposta il modello in modalità training
@@ -342,8 +349,8 @@ def train():
             break
 
     if rank == 0:
-        torch.save(ddp_model.module.state_dict(), f"logs/nofreeze_{formatted_time}.pth")
-        with open(file_path,'a') as f:
+        torch.save(ddp_model.module.state_dict(), f"logs/nofreezeM_{formatted_time}.pth")
+        with open(f"logs/log_{formatted_time}.txt",'a') as f:
             print("Model saved after training nicee",file=f)
         fig, axs= plt.subplots(1,3,figsize=(10,10))
         axs[0].plot(loss_history,'b')
@@ -351,11 +358,11 @@ def train():
         axs[0].legend(['train loss', 'val loss'])
         axs[0].set_title('Running  loss history')
         axs[1].plot(accuracy_history)
-        axs[1].set_title('Validation accuracy history')
+        axs[1].set_title('Accuracy history')
         axs[2].plot(precision_history,'-b')
         axs[2].plot(recall_history,'go')
         axs[2].legend(['precision', 'recall'])
-        axs[2].set_title('Validation precision and recall')
+        axs[2].set_title('Precision and recall')
         plt.savefig(f'logs/metrics_{formatted_time}.png')
     cleanup()
  

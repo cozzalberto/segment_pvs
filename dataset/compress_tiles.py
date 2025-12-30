@@ -11,8 +11,9 @@ from affine import Affine
 
 
 # 1. Apri il dataset originale
-input_dir="dataset/unsupervised_bologna320"
-output_dir='dataset/unsupervised_bologna320'
+input_dir="/leonardo_work/PHD_cozzani/seg_solarbackup/dataset/unsupervised_bologna630"
+output_dir='/leonardo_work/PHD_cozzani/seg_solarbackup/dataset/unsupervised_bologna320'
+
 #os.makedirs(input_dir, exist_ok=True)
 os.makedirs(output_dir, exist_ok=True)
 files= os.listdir(input_dir)
@@ -36,8 +37,8 @@ for filename in files:
         scale_x = src.width  / 320
         scale_y = src.height / 320
         transform = src.transform * Affine.scale(
-            (1/scale_x),
-            (1/scale_y)
+            (scale_x),
+            (scale_y)
         )
 
         # 3. Prepara il profilo per il nuovo file

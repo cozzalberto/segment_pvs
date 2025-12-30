@@ -83,6 +83,21 @@ def load_image_mask_pairs(image_dir, mask_dir):
 
     return hf_Dataset.from_list(data)
 
+def load_image_label_pairs(root_dir,labels):
+    data = []
+    for class_idx, label in enumerate(labels):
+        image_dir = os.path.join(root_dir,label)
+        image_filenames = sorted(os.listdir(image_dir))
+        for fname in image_filenames:
+            image_path = os.path.join(image_dir, fname)
+            data.append({
+                "image": image_path,
+                "label": class_idx
+            })
+
+    return hf_Dataset.from_list(data)
+
+
 from random import sample
 
 def add_files(N, input_dir, output_dir):
@@ -95,9 +110,10 @@ def add_files(N, input_dir, output_dir):
     print("Adding {} files to {}".format(len(filenames_da_inserire), output_dir))
     # Copy the selected files to the output directory
     for filename in filenames_da_inserire:
-        dst= os.path.join(input_dir,filename)
+        src = os.path.join(input_dir,filename)
+        dst= os.path.join(output_dir,filename)
         if not os.path.exists(dst):
-            shutil.move(dst, output_dir)        
+            shutil.move(src, output_dir)        
 
 def add_files_and_masks(N, input_dir, output_dir):
     filenames=[filename for filename in os.listdir(os.path.join(input_dir, 'positive'))]

@@ -84,7 +84,7 @@ training_transform = A.Compose([
 ])
 
 batch_size = 8
-num_epochs_phase1 = 50 
+num_epochs_phase1 = 30 
 num_epochs_phase2 = 0 
 learning_rate1 = 4e-5
 fine_tune_lr = 1e-5
@@ -107,8 +107,9 @@ num_unfrozen2 = 0
 #trainset_filtered = Subset(CustomDataset(root_dir='dataset/big_dataset/train', classes=['positive', 'negative'], transform=training_transform), train_idx)
 #valset = Subset(CustomDataset(root_dir='dataset/big_dataset/train', classes=['positive', 'negative'], transform = transform), val_idx)
 # You can then create a DataLoader from this dataset
-trainset_filtered = CustomDataset(root_dir='dataset/danish_bbr_dataset/gentofte_trainval/train', classes=['positive', 'negative'], transform=training_transform)
-valset = CustomDataset(root_dir='dataset/danish_bbr_dataset/gentofte_trainval/val', classes=['positive', 'negative'], transform = transform)
+train_path = '/leonardo_work/PHD_cozzani/seg_solarbackup/dataset/dataset/danish_bbr_dataset/gentofte_trainval/train'
+trainset_filtered = CustomDataset(root_dir='/leonardo_work/PHD_cozzani/seg_solarbackup/dataset/dataset/danish_bbr_dataset/gentofte_trainval/train', classes=['positive', 'negative'], transform=training_transform)
+valset = CustomDataset(root_dir='/leonardo_work/PHD_cozzani/seg_solarbackup/dataset/dataset/danish_bbr_dataset/gentofte_trainval/val', classes=['positive', 'negative'], transform = transform)
 #trainloader = torch.utils.data.DataLoader(trainset_filtered, batch_size=batch_size, shuffle=True, num_workers=4)
 valloader = torch.utils.data.DataLoader(valset, batch_size=batch_size, shuffle=False, num_workers=4)      
 def train():
@@ -156,7 +157,7 @@ def train():
         init_write(file_path, batch_size, num_epochs_phase1, num_epochs_phase2, learning_rate_2, wd1, wd2, scheduler1, scheduler2, scheduler_diff,  num_unfrozen1, num_unfrozen2,num_steplr, gamma_onecycle, learning_diff, learning_rate1 = learning_rate1 )
         print("--- Fase 1: Addestramento del Classificatore ---")
         with open(file_path,'a') as f:
-            f.write(file_path)
+            f.write(train_path)
     for epoch in range(num_epochs_phase1):
         sampler.set_epoch(epoch)
         ddp_model.train() # Imposta il modello in modalità training

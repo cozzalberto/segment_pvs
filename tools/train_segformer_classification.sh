@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --out=train_classifier.out
-#SBATCH --err=train_classifier.err
+#SBATCH --err=train_seg_classifier.err
 #SBATCH -N 1
 #SBATCH --ntasks-per-node=4 ##### < change
 #SBATCH --cpus-per-task=8
@@ -17,10 +17,11 @@ module purge
 source /leonardo/home/userexternal/acozzani/my_venv/bin/activate
 
 
-cd /leonardo_work/PHD_cozzani
+cd /leonardo_work/PHD_cozzani/seg_solar
+export PYTHONPATH="/leonardo_work/PHD_cozzani/seg_solar:$PYTHONPATH"
 
 echo 'all modules loaded'
 
-accelerate launch train_segformer.py
+accelerate launch tools/train_segformer_classification.py
 
 

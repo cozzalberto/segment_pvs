@@ -10,9 +10,9 @@ import rasterio
 from rasterio.windows import Window
 
 # Percorso al file tile originale
-input_dir = 'dataset/unsupervised_bologna20802'
+input_dir = '/leonardo_work/PHD_cozzani/seg_solarbackup/dataset/unsupervised_bologna20802'
 # Cartella di output per le tessere
-output_dir = 'dataset/unsupervised_bologna320/'
+output_dir = '/leonardo_work/PHD_cozzani/seg_solarbackup/dataset/unsupervised_bologna630'
 # Numero di suddivisioni (griglia NxN)
 # Overlap in pixel su ogni lato
 overlap = 5

@@ -1,8 +1,16 @@
-dataset/
-!dataset/*.py
-dataset/create_vale.py
-logs/
-models/*
-*.err
-*.out
-*.sh
+# Python
+__pycache__/
+*.pyc
+
+# ML models
+*.pth
+*.pt
+*.ckpt
+*.bin
+*.safetensors
+*.zip
+
+# HuggingFace cache
+models/models--*/
+
+

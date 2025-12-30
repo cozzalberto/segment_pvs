@@ -30,16 +30,16 @@ transform = transforms.Compose([
 
 model = models.efficientnet_v2_s()
 model.load_state_dict(torch.load("models/efficientnet_weights.pth", map_location=device))
-model.avgpool = nn.AdaptiveAvgPool2d((2,2))
+model.avgpool = nn.AdaptiveAvgPool2d((1,1))
 num_ftrs = model.classifier[1].in_features
 model.classifier = nn.Sequential(
             nn.Dropout(0.3),
-            nn.Linear(num_ftrs*2*2,512),
-            nn.ReLU(),
-            nn.Linear(512,256),
-            nn.ReLU(),
-            nn.Dropout(0.3),
-            nn.Linear(256,2),
+#            nn.Linear(num_ftrs*2*2,512),
+#            nn.ReLU(),
+#            nn.Linear(512,256),
+#            nn.ReLU(),
+#            nn.Dropout(0.3),
+            nn.Linear(num_ftrs,2),
 )
 model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
 model.to(device)
