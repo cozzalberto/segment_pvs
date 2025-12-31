@@ -50,5 +50,6 @@ We used SLURM to work with these models. Consequently, you may need to do minor 
      ```shell
      sbatch tools/segment.sh
      ```
-   Trained model checkpoints are provided at https://drive.google.com/drive/folders/1_B-l3AS1mgYD6Sc0ihTxMQkfW7owiHbW?usp=sharing 
+   Trained model checkpoints are provided at https://drive.google.com/drive/folders/1_B-l3AS1mgYD6Sc0ihTxMQkfW7owiHbW?usp=sharing  
+   
    If you have access to a labeled test set we provide also `test.py` and `test_segment.py` that compute accuracy metrics of classifier and segmentation model, respectively.
