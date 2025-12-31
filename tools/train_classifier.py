@@ -193,7 +193,7 @@ def train():
     # Definisci l'ottimizzatore per i parametri che richiedono il gradiente (solo il classificatore inizialmente)
 
     if num_unfrozen1>0:
-        if 'adamW' in optimizer_name.lower():
+        if 'adamw' in optimizer_name.lower():
             optim_classifier = optim.AdamW(classifier_params, lr=learning_diff, weight_decay=wd1)
             optim_backbone = torch.optim.AdamW(backbone_params, lr=learning_rate1,weight_decay=wd1)
         elif 'adam' in optimizer_name.lower():
